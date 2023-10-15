@@ -1,4 +1,4 @@
-const nombreCache = 'apv-v1';
+const nombreCache = 'apv-v3';
 
 const archivos = [
     '/',
@@ -7,7 +7,7 @@ const archivos = [
     '/css/bootstrap.css',
     '/css/styles.css',
     '/js/app.js',
-    '/js/apv.js',
+    '/js/apv.js'
 ];
 
 
@@ -15,13 +15,13 @@ const archivos = [
 self.addEventListener('install', e => {
     console.log('Instalado el Service Worker');
 
-  e.waitUntil(
-    caches.open(nombreCache)
-        .then( cache => {
-            console.log('Cacheando');
-            cache.addAll(archivos);
-        })
-  )  
+    e.waitUntil(
+        caches.open(nombreCache)
+            .then(cache => {
+                console.log('Cacheando');
+                cache.addAll(archivos);
+            })
+    )
 
 
 })
@@ -30,7 +30,15 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
     console.log('Service Worker Activado');
 
-    console.log(e)
+    e.waitUntil(
+        caches.keys()
+            .then(keys => {
+                return Promise.all(
+                    keys.filter(key => key !== nombreCache)
+                        .map(key => caches.delete(key)) // Borra los demás
+                );
+            })
+    );
 })
 
 //Evento fetch para descargar archivos estaticos
@@ -39,9 +47,9 @@ self.addEventListener('fetch', e => {
 
     e.respondWith(
         caches.match(e.request)
-            .then( respuestaCache => {
+            .then(respuestaCache => {
                 return respuestaCache
             })
-            .catch( () => caches.match('/error.html'))
+            .catch(() => caches.match('/error.html'))
     )
 })
